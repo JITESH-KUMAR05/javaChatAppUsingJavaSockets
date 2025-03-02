@@ -2,6 +2,13 @@
 
 A real-time chat application built using Java Swing and Socket Programming.
 
+## Ownership & Disclaimer
+This project is created and owned by Jitesh Kumar.
+This is an educational project and is intended for learning purposes only.
+Please do not use this code in your projects without proper permission.
+
+© 2024 Jitesh Kumar. All Rights Reserved.
+
 ## Features
 
 - Real-time messaging between two users
@@ -96,4 +103,15 @@ java Client
 - Add file sharing
 - Add encryption
 - Add emoji support
+
+## Important Notice
+This code is protected by copyright and is the intellectual property of Jitesh Kumar.
+This project was created for educational purposes to demonstrate:
+- Java Socket Programming
+- GUI development with Swing
+- Real-time communication
+- Multi-threading concepts
+
+Any unauthorized use, reproduction, or distribution of this code is strictly prohibited.
+For educational references or permissions, please contact the owner.
 
