@@ -12,6 +12,7 @@ public class Client extends JFrame implements ActionListener {
     JPanel p2;
     Box vertical = Box.createVerticalBox();
     static JPanel messageArea;
+    static JScrollPane scrollPane;
     static Socket s;
     static DataInputStream din;
     static DataOutputStream dout;
@@ -97,10 +98,12 @@ public class Client extends JFrame implements ActionListener {
         p2.add(send);
 
         // Add a panel for messages with a different layout
-        messageArea = new JPanel(new BorderLayout());
-        messageArea.setBounds(7, 0, 470, 560);  // Area above the text field
-        messageArea.add(vertical, BorderLayout.PAGE_START);
-        p2.add(messageArea);
+        messageArea = new JPanel();
+        messageArea.setLayout(new BoxLayout(messageArea, BoxLayout.Y_AXIS));
+        scrollPane = new JScrollPane(messageArea);
+        scrollPane.setBounds(7, 0, 470, 560);  // Area above the text field
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        p2.add(scrollPane);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Client");
@@ -123,10 +126,11 @@ public class Client extends JFrame implements ActionListener {
                     SwingUtilities.invokeLater(() -> {
                         JPanel left = new JPanel(new BorderLayout());
                         left.add(p3, BorderLayout.LINE_START);
-                        vertical.add(left);
-                        vertical.add(Box.createVerticalStrut(15));
+                        messageArea.add(left);
+                        messageArea.add(Box.createVerticalStrut(15));
                         p2.validate();
                         p2.repaint();
+                        scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum());
                     });
                 }
             } catch (Exception e) {
@@ -144,14 +148,15 @@ public class Client extends JFrame implements ActionListener {
                 
                 JPanel right = new JPanel(new BorderLayout());
                 right.add(p3, BorderLayout.LINE_END);
-                vertical.add(right);
-                vertical.add(Box.createVerticalStrut(15));
+                messageArea.add(right);
+                messageArea.add(Box.createVerticalStrut(15));
                 
                 dout.writeUTF(out);
                 text1.setText("");
                 
                 revalidate();
                 repaint();
+                scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,7 +167,6 @@ public class Client extends JFrame implements ActionListener {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); 
         
-        // Changed colors - sent messages in blue, received in green
         Color messageColor = isSent ? new Color(51, 144, 255) : new Color(39, 174, 96);
         panel.setBackground(messageColor);
         panel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
