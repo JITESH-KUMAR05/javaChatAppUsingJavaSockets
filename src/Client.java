@@ -237,12 +237,18 @@ public class Client extends JFrame implements ActionListener {
         sendMessage();
     }
 
-    // Replace the formatLabel method with this optimized version:
+    // Replace the formatLabel method and remove all other border implementations:
+
+// Replace the formatLabel method with this optimized version:
+
+// Replace the formatLabel method with this ultra-compact version:
+
+// Replace the formatLabel method with this optimized version:
 
 public static JPanel formatLabel(String out, boolean isSent) {
     Color messageColor = isSent ? new Color(51, 144, 255) : new Color(39, 174, 96);
     
-    // Calculate optimal width based on text length
+    // Calculate width based on text length
     int textLength = out.length();
     int width;
     
@@ -261,75 +267,93 @@ public static JPanel formatLabel(String out, boolean isSent) {
     panel.setLayout(null); // No layout manager for precise control
     panel.setBackground(messageColor);
     
-    int totalHeight = 0;
+    int totalHeight;
     
-    // For very short messages, create a compact single-line display
     if (textLength <= 5) {
-        JLabel output = new JLabel(out);
-        output.setFont(new Font("Serif", Font.PLAIN, 16));
-        output.setForeground(Color.WHITE);
+        // For very short messages
+        JLabel textLabel = new JLabel(out);
+        textLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        textLabel.setForeground(Color.WHITE);
         
-        // Get the exact width needed for text
-        FontMetrics fm = output.getFontMetrics(output.getFont());
-        int textWidth = fm.stringWidth(out) + 4; // Small buffer
-        
-        // Position the text label
-        output.setBounds(5, 2, textWidth, 18);
-        panel.add(output);
-        
-        // Add timestamp inline
+        // Create time label
         JLabel timeLabel = new JLabel(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
         timeLabel.setFont(new Font("Serif", Font.PLAIN, 9));
         timeLabel.setForeground(new Color(240, 240, 240));
         
-        // Position timestamp right after text
-        int timeWidth = fm.stringWidth(timeLabel.getText()) + 10;
-        timeLabel.setBounds(textWidth + 8, 6, timeWidth, 12);
+        // Measure text dimensions
+        FontMetrics fm = textLabel.getFontMetrics(textLabel.getFont());
+        int textWidth = fm.stringWidth(out) + 2;
+        int textHeight = fm.getHeight();
+        
+        // Position text
+        textLabel.setBounds(5, 2, textWidth, textHeight);
+        panel.add(textLabel);
+        
+        // Position time next to text
+        timeLabel.setBounds(textWidth + 10, 4, 40, 12);
         panel.add(timeLabel);
         
-        // Total width needed
-        width = Math.max(width, textWidth + timeWidth + 15);
-        totalHeight = 22; // Just enough for one line of text
+        // Set total height - just enough for one line
+        totalHeight = Math.max(textHeight, timeLabel.getPreferredSize().height) + 4;
         
     } else {
         // For longer messages
-        JTextPane textPane = new JTextPane();
-        textPane.setContentType("text/html");
-        textPane.setText("<html><body style='width:" + (width-10) + "px; padding:0; margin:0;'>" + out + "</body></html>");
-        textPane.setEditable(false);
-        textPane.setBackground(messageColor);
-        textPane.setForeground(Color.WHITE);
-        textPane.setFont(new Font("Serif", Font.PLAIN, 16));
-        textPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        JTextArea textArea = new JTextArea(out);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setBackground(messageColor);
+        textArea.setForeground(Color.WHITE);
+        textArea.setFont(new Font("Serif", Font.PLAIN, 16));
+        textArea.setEditable(false);
+        textArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); // Remove all border
+        textArea.setMargin(new Insets(0, 0, 0, 0)); // Remove all margin
         
-        // Calculate precise height
-        textPane.setSize(width-10, 1);
-        int textHeight = textPane.getPreferredSize().height;
+        // Calculate exact text height
+        textArea.setSize(width - 10, Short.MAX_VALUE); // Set width constraint, large height temporarily
+        int lineCount = textArea.getLineCount();
+        FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
+        int textHeight = lineCount * fm.getHeight();
         
-        // Position the text
-        textPane.setBounds(5, 2, width-10, textHeight);
-        panel.add(textPane);
+        // Position text
+        textArea.setBounds(5, 2, width - 10, textHeight);
+        panel.add(textArea);
         
-        // Add timestamp at bottom-right
+        // Create time label
         JLabel timeLabel = new JLabel(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
         timeLabel.setFont(new Font("Serif", Font.PLAIN, 9));
         timeLabel.setForeground(new Color(240, 240, 240));
         
-        FontMetrics fm = timeLabel.getFontMetrics(timeLabel.getFont());
-        int timeWidth = fm.stringWidth(timeLabel.getText());
-        
-        timeLabel.setBounds(width-timeWidth-5, textHeight+2, timeWidth, 12);
+        // Position time at bottom right
+        FontMetrics timeFm = timeLabel.getFontMetrics(timeLabel.getFont());
+        timeLabel.setBounds(width - timeFm.stringWidth(timeLabel.getText()) - 7, textHeight + 1, 40, 10);
         panel.add(timeLabel);
         
-        totalHeight = textHeight + 14; // Text height + timestamp height + minimal spacing
+        // Set total height - text + time
+        totalHeight = textHeight + 14;
     }
     
-    // Set final panel dimensions
+    // Apply the calculated height to the panel
     panel.setPreferredSize(new Dimension(width, totalHeight));
-    panel.setBorder(new RoundedBorder(messageColor, 8));
     
-    // Create a wrapper panel for alignment
-    JPanel wrapperPanel = new JPanel(new BorderLayout());
+    // Use minimal border
+    panel.setBorder(new Border() {
+        public Insets getBorderInsets(Component c) {
+            return new Insets(1, 1, 1, 1);
+        }
+        
+        public boolean isBorderOpaque() {
+            return true;
+        }
+        
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            g.setColor(messageColor);
+            ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.fillRoundRect(x, y, width-1, height-1, 8, 8);
+        }
+    });
+    
+    // Wrapper panel
+    JPanel wrapperPanel = new JPanel(new BorderLayout(0, 0));
     wrapperPanel.setOpaque(false);
     wrapperPanel.add(panel, isSent ? BorderLayout.EAST : BorderLayout.WEST);
     
@@ -344,52 +368,5 @@ public static JPanel formatLabel(String out, boolean isSent) {
             e.printStackTrace();
         }
         new Client();
-    }
-}
-
-// Custom rounded border for chat bubbles
-// Replace the RoundedBorder class with this more compact version:
-
-// Custom rounded border for chat bubbles with minimal insets
-class RoundedBorder implements Border {
-    private Color color;
-    private int radius;
-    
-    RoundedBorder(Color color, int radius) {
-        this.color = color;
-        this.radius = radius;
-    }
-    
-    public Insets getBorderInsets(Component c) {
-        // Significantly reduce the insets
-        return new Insets(2, 3, 2, 3);
-    }
-    
-    public boolean isBorderOpaque() {
-        return true;
-    }
-    
-    public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-        g.setColor(color);
-        ((Graphics2D) g).setRenderingHint(
-            RenderingHints.KEY_ANTIALIASING,
-            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fillRoundRect(x, y, width-1, height-1, radius, radius);
-    }
-}
-
-// Factory for BorderFactory extension
-class BorderFactory {
-    public static Border createRoundedBorder(Color color, int radius) {
-        return new RoundedBorder(color, radius);
-    }
-    
-    // We can still use the standard BorderFactory methods by delegating to them
-    public static Border createEmptyBorder(int top, int left, int bottom, int right) {
-        return javax.swing.BorderFactory.createEmptyBorder(top, left, bottom, right);
-    }
-    
-    public static Border createCompoundBorder(Border outer, Border inner) {
-        return javax.swing.BorderFactory.createCompoundBorder(outer, inner);
     }
 }

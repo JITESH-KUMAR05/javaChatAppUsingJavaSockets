@@ -242,16 +242,16 @@ public class Server extends JFrame implements ActionListener {
         sendMessage();
     }
 
-    // Replace the formatLabel method with this:
+    // Replace the formatLabel method and remove all other border implementations:
 
-// Replace the formatLabel method and RoundedBorder class
+// Replace the formatLabel method with this optimized version:
 
-// Replace the formatLabel method with this improved version
+// Replace the formatLabel method with this optimized version:
 
 public static JPanel formatLabel(String out, boolean isSent) {
     Color messageColor = isSent ? new Color(51, 144, 255) : new Color(39, 174, 96);
     
-    // Calculate optimal width based on text length
+    // Calculate width based on text length
     int textLength = out.length();
     int width;
     
@@ -265,98 +265,104 @@ public static JPanel formatLabel(String out, boolean isSent) {
         width = 300;
     }
     
-    // Use MigLayout for precise component positioning
+    // Use absolute positioning for precise control
     JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setLayout(null); // No layout manager for precise control
     panel.setBackground(messageColor);
     
-    // For very short messages (<= 5 chars), use a single-line compact layout
-    // In the formatLabel method, update these sections:
-
-// For very short messages (<= 5 chars), use a more compact layout
-if (textLength <= 5) {
-    JPanel contentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0)); // Reduced padding
-    contentPanel.setBackground(messageColor);
+    int totalHeight;
     
-    JLabel output = new JLabel(out);
-    output.setFont(new Font("Serif", Font.PLAIN, 16));
-    output.setForeground(Color.WHITE);
+    if (textLength <= 5) {
+        // For very short messages
+        JLabel textLabel = new JLabel(out);
+        textLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        textLabel.setForeground(Color.WHITE);
+        
+        // Create time label
+        JLabel timeLabel = new JLabel(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
+        timeLabel.setFont(new Font("Serif", Font.PLAIN, 9));
+        timeLabel.setForeground(new Color(240, 240, 240));
+        
+        // Measure text dimensions
+        FontMetrics fm = textLabel.getFontMetrics(textLabel.getFont());
+        int textWidth = fm.stringWidth(out) + 2;
+        int textHeight = fm.getHeight();
+        
+        // Position text
+        textLabel.setBounds(5, 2, textWidth, textHeight);
+        panel.add(textLabel);
+        
+        // Position time next to text
+        timeLabel.setBounds(textWidth + 10, 4, 40, 12);
+        panel.add(timeLabel);
+        
+        // Set total height - just enough for one line
+        totalHeight = Math.max(textHeight, timeLabel.getPreferredSize().height) ;
+        
+    } else {
+        // For longer messages
+        JTextArea textArea = new JTextArea(out);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setBackground(messageColor);
+        textArea.setForeground(Color.WHITE);
+        textArea.setFont(new Font("Serif", Font.PLAIN, 16));
+        textArea.setEditable(false);
+        textArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); // Remove all border
+        textArea.setMargin(new Insets(15, 0, 0, 15)); // Remove all margin
+        
+        // Calculate exact text height
+        textArea.setSize(width - 10, Short.MAX_VALUE); // Set width constraint, large height temporarily
+        int lineCount = textArea.getLineCount();
+        FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
+        int textHeight = lineCount * fm.getHeight();
+        
+        // Position text
+        textArea.setBounds(5, 2, width - 10, textHeight);
+        panel.add(textArea);
+        
+        // Create time label
+        JLabel timeLabel = new JLabel(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
+        timeLabel.setFont(new Font("Serif", Font.PLAIN, 9));
+        timeLabel.setForeground(new Color(240, 240, 240));
+        
+        // Position time at bottom right
+        FontMetrics timeFm = timeLabel.getFontMetrics(timeLabel.getFont());
+        timeLabel.setBounds(width - timeFm.stringWidth(timeLabel.getText()) - 7, textHeight + 1, 40, 10);
+        panel.add(timeLabel);
+        
+        // Set total height - text + time
+        totalHeight = textHeight + 14;
+    }
     
-    JLabel timeLabel = new JLabel(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
-    timeLabel.setFont(new Font("Serif", Font.PLAIN, 9));
-    timeLabel.setForeground(new Color(240, 240, 240));
+    // Apply the calculated height to the panel
+    panel.setPreferredSize(new Dimension(width, totalHeight));
     
-    contentPanel.add(output);
-    contentPanel.add(Box.createHorizontalStrut(3)); // Reduced spacing
-    contentPanel.add(timeLabel);
+    // Use minimal border
+    panel.setBorder(new Border() {
+        public Insets getBorderInsets(Component c) {
+            return new Insets(1, 1, 1, 1);
+        }
+        
+        public boolean isBorderOpaque() {
+            return true;
+        }
+        
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            g.setColor(messageColor);
+            ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.fillRoundRect(x, y, width-1, height-1, 8, 8);
+        }
+    });
     
-    panel.add(contentPanel);
-} else {
-    // For longer messages
-    JTextPane textPane = new JTextPane();
-    textPane.setContentType("text/html");
-    textPane.setText("<html><body style='width:" + (width-10) + "px; padding:0; margin:0;'>" + out + "</body></html>");
-    textPane.setEditable(false);
-    textPane.setBackground(messageColor);
-    textPane.setForeground(Color.WHITE);
-    textPane.setFont(new Font("Serif", Font.PLAIN, 16));
-    textPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); // Remove text pane border
-    
-    // Calculate the preferred size with the constrained width
-    textPane.setSize(width, 10);
-    int textHeight = textPane.getPreferredSize().height;
-    textPane.setPreferredSize(new Dimension(width, textHeight));
-    
-    JPanel timePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 0)); // Reduced padding
-    timePanel.setBackground(messageColor);
-    
-    JLabel timeLabel = new JLabel(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
-    timeLabel.setFont(new Font("Serif", Font.PLAIN, 9));
-    timeLabel.setForeground(new Color(240, 240, 240));
-    
-    timePanel.add(timeLabel);
-    timePanel.setMaximumSize(new Dimension(width, 10)); // Reduced height
-    
-    panel.add(textPane);
-    panel.add(timePanel);
-}
-    
-    // Create a wrapper panel for alignment
-    JPanel wrapperPanel = new JPanel(new BorderLayout());
+    // Wrapper panel
+    JPanel wrapperPanel = new JPanel(new BorderLayout(0, 0));
     wrapperPanel.setOpaque(false);
-    
-    // Use a CompactBorder custom class for minimal padding
-    panel.setBorder(new RoundedBorder(messageColor, 8));
-    
     wrapperPanel.add(panel, isSent ? BorderLayout.EAST : BorderLayout.WEST);
+    
     return wrapperPanel;
 }
 
-// A more compact border with minimal insets
-class CompactBorder implements Border {
-    private Color color;
-    private int radius;
-    
-    CompactBorder(Color color, int radius) {
-        this.color = color;
-        this.radius = radius;
-    }
-    
-    public Insets getBorderInsets(Component c) {
-        return new Insets(3, 5, 3, 5); // Very minimal insets
-    }
-    
-    public boolean isBorderOpaque() {
-        return true;
-    }
-    
-    public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-        g.setColor(color);
-        Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.fillRoundRect(x, y, width-1, height-1, radius, radius);
-    }
-}
     public static void main(String[] args){
         try {
             // Set system look and feel
@@ -365,51 +371,5 @@ class CompactBorder implements Border {
             e.printStackTrace();
         }
         new Server();
-    }
-}
-
-// Custom rounded border for chat bubbles
-// Replace the RoundedBorder class with this ultra-compact version:
-
-class RoundedBorder implements Border {
-    private Color color;
-    private int radius;
-    
-    RoundedBorder(Color color, int radius) {
-        this.color = color;
-        this.radius = radius;
-    }
-    
-    public Insets getBorderInsets(Component c) {
-        // Ultra minimal insets - just enough to prevent text touching the edge
-        return new Insets(1, 2, 1, 2);
-    }
-    
-    public boolean isBorderOpaque() {
-        return true;
-    }
-    
-    public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-        g.setColor(color);
-        ((Graphics2D) g).setRenderingHint(
-            RenderingHints.KEY_ANTIALIASING,
-            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fillRoundRect(x, y, width-1, height-1, radius, radius);
-    }
-}
-
-// Factory for BorderFactory extension
-class BorderFactory {
-    public static Border createRoundedBorder(Color color, int radius) {
-        return new RoundedBorder(color, radius);
-    }
-    
-    // We can still use the standard BorderFactory methods by delegating to them
-    public static Border createEmptyBorder(int top, int left, int bottom, int right) {
-        return javax.swing.BorderFactory.createEmptyBorder(top, left, bottom, right);
-    }
-    
-    public static Border createCompoundBorder(Border outer, Border inner) {
-        return javax.swing.BorderFactory.createCompoundBorder(outer, inner);
     }
 }
