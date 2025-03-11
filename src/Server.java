@@ -1,4 +1,3 @@
-
 //package chatapp;
 import javax.swing.*;
 import java.awt.*;
@@ -154,6 +153,7 @@ public class Server extends JFrame implements ActionListener {
                     scrollToBottom();
                 });
 
+                // Inside the while loop where messages are received and added to the message area
                 while (true) {
                     String msginput = din.readUTF();
                     JPanel p3 = formatLabel(msginput, false);
@@ -163,7 +163,7 @@ public class Server extends JFrame implements ActionListener {
                         left.add(p3, BorderLayout.LINE_START);
                         left.setOpaque(false);
                         messageArea.add(left);
-                        messageArea.add(Box.createVerticalStrut(0));
+                        messageArea.add(Box.createVerticalStrut(10)); // Add vertical strut for spacing
                         scrollToBottom();
                     });
                 }

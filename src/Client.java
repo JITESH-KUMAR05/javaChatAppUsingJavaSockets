@@ -147,16 +147,16 @@ public class Client extends JFrame implements ActionListener {
                     scrollToBottom();
                 });
                 
-                while(true) {
+                while (true) {
                     String msginput = din.readUTF();
                     JPanel p3 = formatLabel(msginput, false);
-                    
+
                     SwingUtilities.invokeLater(() -> {
                         JPanel left = new JPanel(new BorderLayout());
                         left.add(p3, BorderLayout.LINE_START);
                         left.setOpaque(false);
                         messageArea.add(left);
-                        messageArea.add(Box.createVerticalStrut(15));
+                        messageArea.add(Box.createVerticalStrut(10)); // Add vertical strut for spacing
                         scrollToBottom();
                     });
                 }
